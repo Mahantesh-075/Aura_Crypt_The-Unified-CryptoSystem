@@ -1,0 +1,47 @@
+Here is everything you need to open the application, run it anytime, and perform image encryption and decryption:
+
+🌐 1. Direct Links (Currently Live & Running)
+The server is currently running in the background. You can open any of these in your browser right now:
+
+On this PC (Localhost): 👉 http://localhost:8000 (or http://127.0.0.1:8000)
+
+On Mobile / Other Devices (Same Wi-Fi / LAN): 👉 http://10.226.97.149:8000
+
+💻 2. Command to Start the Server Manually
+Whenever you open a new PowerShell terminal and want to start or restart the server, run:
+
+powershell
+# Navigate to the project directory
+cd "C:\Users\mahan\.gemini\Image_Encryption"
+# Start the web server (using the project virtual environment)
+.\.venv\Scripts\python.exe -m uvicorn backend.app:app --host 0.0.0.0 --port 8000 --reload
+Tip: --host 0.0.0.0 allows your computer, phone, or tablet on the same network to access the web app.
+
+📱 3. Worldwide Public Mobile Access (Optional SSH Tunnel)
+If you want to share links with mobile phones connected to Cellular Data (4G/5G) outside your local Wi-Fi, run this in a second terminal:
+
+powershell
+ssh -o StrictHostKeyChecking=no -R 80:127.0.0.1:8000 nokey@localhost.run
+It will print a free HTTPS link (e.g., https://xxxxxx.lhr.life) that can be opened anywhere across the globe.
+
+🚀 4. Step-by-Step: How to Encrypt & Decrypt
+Step A: Encrypt an Image
+Open http://localhost:8000.
+In the Encrypt card:
+Drag & drop or upload any image (PNG, JPG, etc.).
+Enter your Custom Password (or click 🎲 Generate Strong Password).
+Select your desired Cryptographic Mode (e.g., Coupled Permutation-Diffusion).
+Click 🔒 Encrypt Image.
+Once completed:
+You can view the cipher image and security metrics (Entropy ~7.999, NPCR > 99.6%).
+Click 📋 Copy Shareable Link to send the encrypted image link to anyone.
+Step B: Decrypt an Image
+Via Shareable Link:
+Open the copied link on your PC or mobile browser.
+It will automatically load the encrypted image.
+Enter the password and click 🔓 Decrypt.
+Via Decrypt Tab:
+Go to the Decrypt tab on the webpage.
+Upload the encrypted file (or enter the Share ID).
+Enter the password and click Decrypt.
+If the password is correct, the original image is restored; if incorrect, HMAC-SHA256 authentication rejects it immediately.

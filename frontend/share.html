@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AURA-CRYPT // Secure Decryption Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    :root {
+      --share-max-w: 860px;
+    }
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: #030712;
+      color: #f8fafc;
+      font-family: 'Outfit', sans-serif;
+      overflow-x: hidden;
+    }
+    .share-main-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem 1rem;
+      position: relative;
+      z-index: 2;
+    }
+    .share-frame-card {
+      width: 100%;
+      max-width: var(--share-max-w);
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+      position: relative;
+    }
+    .share-header-bar {
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(8, 12, 24, 0.6);
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+    .media-pill-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      background: rgba(0, 242, 254, 0.12);
+      border: 1px solid rgba(0, 242, 254, 0.3);
+      color: var(--accent-cyan);
+    }
+    .pulse-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-cyan);
+      box-shadow: 0 0 10px var(--accent-cyan);
+      animation: pulse-dot 1.6s infinite ease-in-out;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { transform: scale(0.9); opacity: 0.6; }
+      50% { transform: scale(1.3); opacity: 1; }
+    }
+
+    /* THE GLASSY SHOWCASE STAGE */
+    .showcase-stage {
+      position: relative;
+      min-height: 480px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #02040a;
+      overflow: hidden;
+    }
+    .blurred-background-wrapper {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .stage-media-display {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      transition: filter 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s ease, opacity 0.5s ease;
+    }
+    .stage-media-display.is-locked {
+      filter: blur(26px) brightness(0.65) saturate(1.2);
+      transform: scale(1.08);
+    }
+    .stage-media-display.is-unlocked {
+      filter: blur(0px) brightness(1) saturate(1);
+      transform: scale(1);
+    }
+
+    /* Video Player & Document Display */
+    .video-display-element {
+      width: 100%;
+      max-height: 520px;
+      border-radius: 12px;
+      outline: none;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .doc-preview-container {
+      width: 90%;
+      height: 90%;
+      min-height: 420px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15, 23, 42, 0.8);
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 2rem;
+      text-align: center;
+      gap: 1rem;
+    }
+
+    /* CENTER FLOATING GLASSMORPHISM LOCK MODAL */
+    .center-lock-modal {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 90%;
+      max-width: 440px;
+      background: rgba(10, 15, 30, 0.88);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid rgba(0, 242, 254, 0.35);
+      border-radius: 20px;
+      padding: 2rem 1.75rem;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75), 0 0 35px rgba(0, 242, 254, 0.18);
+      text-align: center;
+      z-index: 10;
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .center-lock-modal.hidden-modal {
+      opacity: 0;
+      transform: translate(-50%, -46%) scale(0.95);
+      pointer-events: none;
+    }
+
+    .modal-shield-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 1rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.85rem;
+      background: linear-gradient(135deg, rgba(0, 242, 254, 0.2), rgba(0, 114, 255, 0.2));
+      border: 1px solid rgba(0, 242, 254, 0.4);
+      box-shadow: 0 0 20px rgba(0, 242, 254, 0.3);
+      animation: float-shield 3s ease-in-out infinite;
+    }
+    @keyframes float-shield {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    .modal-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 0.35rem;
+    }
+    .modal-desc {
+      color: var(--text-secondary);
+      font-size: 0.88rem;
+      line-height: 1.45;
+      margin-bottom: 1.25rem;
+    }
+
+    /* ATTEMPTS REMAINING PILL (5 ATTEMPTS SECURITY SPEC) */
+    .attempts-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+      transition: all 0.3s ease;
+    }
+    .attempts-badge.safe {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+    }
+    .attempts-badge.warning {
+      background: rgba(245, 158, 11, 0.18);
+      border: 1px solid rgba(245, 158, 11, 0.5);
+      color: #fbbf24;
+    }
+    .attempts-badge.critical {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.5);
+      color: #f87171;
+    }
+    .attempts-badge.locked {
+      background: rgba(220, 38, 38, 0.3);
+      border: 1px solid rgba(220, 38, 38, 0.6);
+      color: #fca5a5;
+    }
+
+    .modal-input-group {
+      position: relative;
+      margin-bottom: 1.25rem;
+    }
+    .modal-pwd-input {
+      width: 100%;
+      padding: 0.95rem 3.2rem 0.95rem 1.1rem;
+      background: #060913;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 10px;
+      color: #ffffff;
+      font-size: 1rem;
+      outline: none;
+      transition: all 0.25s ease;
+      font-family: inherit;
+    }
+    .modal-pwd-input:focus {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 16px rgba(0, 242, 254, 0.3);
+      background: #090e1c;
+    }
+    .btn-eye-toggle {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      padding: 4px;
+    }
+
+    .btn-unlock-action {
+      width: 100%;
+      padding: 0.95rem 1.25rem;
+      background: linear-gradient(135deg, var(--accent-cyan), #0072ff);
+      color: #020617;
+      font-weight: 700;
+      font-size: 1rem;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.25s ease;
+      box-shadow: 0 6px 20px rgba(0, 114, 255, 0.35);
+    }
+    .btn-unlock-action:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 242, 254, 0.5);
+    }
+    .btn-unlock-action:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .shake-anim {
+      animation: shake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    }
+    @keyframes shake {
+      10%, 90% { transform: translate3d(-52%, -50%, 0); }
+      20%, 80% { transform: translate3d(-48%, -50%, 0); }
+      30%, 50%, 70% { transform: translate3d(-54%, -50%, 0); }
+      40%, 60% { transform: translate3d(-46%, -50%, 0); }
+    }
+
+    .error-feedback-alert {
+      background: rgba(244, 63, 94, 0.15);
+      border: 1px solid rgba(244, 63, 94, 0.4);
+      color: #fecdd3;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      margin-top: 1rem;
+      font-size: 0.84rem;
+      text-align: left;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    /* UNLOCKED CONTROLS BAR */
+    .unlocked-actions-bar {
+      padding: 1.25rem 1.75rem;
+      background: rgba(8, 12, 24, 0.85);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .btn-download-success {
+      padding: 0.8rem 1.5rem;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 0.95rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+      text-decoration: none;
+    }
+    .btn-download-success:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45);
+    }
+    .btn-relock-view {
+      padding: 0.8rem 1.2rem;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text-secondary);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+    .btn-relock-view:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+    }
+
+    .meta-details-strip {
+      padding: 0.85rem 1.5rem;
+      background: rgba(4, 6, 12, 0.7);
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      gap: 1rem;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+    }
+    .meta-details-strip strong {
+      color: #ffffff;
+      font-family: var(--font-mono);
+    }
+  </style>
+</head>
+<body>
+  <!-- Ambient background lighting -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <a href="/" style="text-decoration: none; display: flex; align-items: center; gap: 0.75rem; color: inherit;">
+          <div class="brand-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="M9 12l2 2 4-4"/>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <div class="brand-title-row">
+              <h1 class="brand-title">AURA-CRYPT</h1>
+              <span class="version-tag">PORTAL</span>
+            </div>
+            <p class="brand-subtitle">Confidential Media &amp; Document Transmission</p>
+          </div>
+        </a>
+      </div>
+      <div class="academic-badge">
+        <div class="badge-dept">Dept of ECE • Dr. AIT (2026-27)</div>
+        <div class="badge-crypto">ChaCha20-Poly1305 • HMAC-SHA256 • 5-Attempt Lock</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="share-main-container">
+    <!-- State 1: Loading State -->
+    <div id="share-loading-box" class="share-frame-card" style="text-align: center; padding: 4.5rem 2rem;">
+      <div class="spinner" style="width: 48px; height: 48px; margin: 0 auto 1.5rem; border: 3px solid rgba(0, 242, 254, 0.2); border-top-color: var(--accent-cyan); border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+      <h2 style="color: #ffffff; font-size: 1.35rem; margin-bottom: 0.5rem;">Accessing Encrypted Transmission...</h2>
+      <p style="color: var(--text-secondary); font-size: 0.9rem;">Connecting to cryptographic storage and verifying integrity headers.</p>
+    </div>
+
+    <!-- State 2: 404 Not Found State -->
+    <div id="share-not-found-box" class="share-frame-card hidden" style="text-align: center; padding: 4rem 2rem;">
+      <div style="font-size: 3.5rem; margin-bottom: 1rem;">🚫</div>
+      <h2 style="color: var(--accent-rose); font-size: 1.5rem; margin-bottom: 0.5rem;">Encrypted Transmission Not Found</h2>
+      <p style="color: var(--text-secondary); font-size: 0.95rem; max-width: 480px; margin: 0 auto 1.5rem;">
+        This encrypted share link does not exist, has expired, or the unique identifier is incorrect.
+      </p>
+      <a href="/" class="btn-download-success" style="display: inline-flex; text-decoration: none;">
+        Return to Encryption Studio
+      </a>
+    </div>
+
+    <!-- State 3: Active Glassy Showcase Portal -->
+    <div id="share-active-box" class="share-frame-card hidden">
+      <!-- Header bar with title and media badge -->
+      <div class="share-header-bar">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div class="pulse-indicator"></div>
+          <div>
+            <div id="display-share-title" style="font-weight: 700; color: #ffffff; font-size: 1.05rem;">Encrypted Transmission</div>
+            <div id="display-share-subtitle" style="font-size: 0.78rem; color: var(--text-secondary);">End-to-End Encrypted File</div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <span id="badge-media-type" class="media-pill-tag">🔒 IMAGE</span>
+          <span id="badge-lock-status" class="media-pill-tag" style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.4); color: #fbbf24;">LOCKED</span>
+        </div>
+      </div>
+
+      <!-- SHOWCASE STAGE (BLURRED / GLASSY BACKGROUND) -->
+      <div class="showcase-stage" id="stage-viewport">
+        <!-- 1. Background image / preview (blurred when locked) -->
+        <div class="blurred-background-wrapper" id="stage-bg-wrapper">
+          <!-- Image Display -->
+          <img id="img-recipient-display" alt="Encrypted Noise / Preview" src="" class="stage-media-display is-locked">
+          
+          <!-- Video Display (Revealed when unlocked) -->
+          <div id="video-display-box" class="hidden" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 1rem;">
+            <video id="unlocked-video-player" class="video-display-element" controls playsinline>
+              Your browser does not support the video tag.
+            </video>
+          </div>
+
+          <!-- Document Display (Revealed when unlocked) -->
+          <div id="doc-display-box" class="hidden doc-preview-container">
+            <div style="font-size: 3.5rem;" id="doc-type-icon">📄</div>
+            <h3 id="doc-unlocked-filename" style="color: #ffffff; font-size: 1.35rem; margin: 0;">document.pdf</h3>
+            <p id="doc-unlocked-meta" style="color: var(--text-secondary); font-size: 0.9rem; margin: 0;">Decrypted Lossless Document</p>
+            <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
+              <a id="btn-doc-download" href="#" download class="btn-download-success" style="padding: 0.85rem 1.75rem;">
+                📥 Download Decrypted Document
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. CENTER POP-UP GLASSMORPHISM LOCK MODAL -->
+        <div id="center-lock-modal" class="center-lock-modal">
+          <div class="modal-shield-icon" id="modal-icon">🔒</div>
+          
+          <h2 class="modal-title" id="modal-heading">Confidential Transmission</h2>
+          <p class="modal-desc" id="modal-subheading">
+            This media is locked with ChaCha20 encryption. Enter the sender's password to remove the frosted glass blur and view.
+          </p>
+
+          <!-- 5 ATTEMPTS REMAINING BADGE (Security Specification) -->
+          <div id="attempts-pill" class="attempts-badge safe">
+            <span>🛡️</span>
+            <span id="attempts-text">5 / 5 Attempts Remaining</span>
+          </div>
+
+          <!-- Password submission form -->
+          <form id="form-modal-unlock" onsubmit="return false;">
+            <div class="modal-input-group">
+              <input 
+                type="password" 
+                id="input-unlock-password" 
+                class="modal-pwd-input" 
+                placeholder="Enter decryption password..." 
+                autocomplete="current-password"
+                required
+              >
+              <button type="button" id="btn-toggle-modal-pwd" class="btn-eye-toggle" title="Toggle password visibility">👁️</button>
+            </div>
+
+            <button type="submit" id="btn-modal-unlock" class="btn-unlock-action">
+              <span id="unlock-spinner" class="spinner hidden" style="width: 18px; height: 18px; border: 2px solid rgba(0,0,0,0.2); border-top-color: #000; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>
+              <span id="unlock-icon">⚡</span>
+              <span id="unlock-text">Unlock &amp; Decrypt</span>
+            </button>
+          </form>
+
+          <!-- Error Alert (Wrong password or lockout) -->
+          <div id="modal-error-alert" class="error-feedback-alert hidden">
+            <span style="font-size: 1.1rem; line-height: 1;">⚠️</span>
+            <div id="modal-error-text">Authentication failed! Incorrect password.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- UNLOCKED CONTROLS BAR (Visible after correct password) -->
+      <div id="unlocked-controls-bar" class="unlocked-actions-bar hidden">
+        <div style="display: flex; align-items: center; gap: 0.5rem; color: #34d399; font-weight: 600; font-size: 0.95rem;">
+          <span>✓</span>
+          <span id="unlocked-status-message">HMAC-SHA256 Verified • Lossless Decryption Restored</span>
+        </div>
+        <div style="display: flex; gap: 0.75rem; align-items: center;">
+          <a id="btn-download-file" href="#" download="unlocked_media" class="btn-download-success">
+            <span>📥</span>
+            <span id="btn-download-label">Download File</span>
+          </a>
+          <button type="button" id="btn-relock" class="btn-relock-view">
+            <span>🔒 Re-Lock</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- METADATA DETAILS STRIP -->
+      <div class="meta-details-strip">
+        <div>Filename: <strong id="meta-strip-filename">media.png</strong></div>
+        <div>File Size: <strong id="meta-strip-size">0 KB</strong></div>
+        <div>Standard: <strong style="color: var(--accent-cyan);">ChaCha20 • PBKDF2</strong></div>
+        <div>Integrity: <strong style="color: #34d399;">HMAC-SHA256</strong></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    <div class="footer-container">
+      <div class="footer-left">
+        <p>AURA-CRYPT Image, Document &amp; Video Cryptosystem</p>
+        <p class="footer-dept">Department of ECE • Dr. Ambedkar Institute of Technology • Academic Year 2026-27</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Parse Share ID from URL path (e.g., /share/abc123xyz)
+      const pathSegments = window.location.pathname.split('/').filter(Boolean);
+      const shareId = pathSegments[pathSegments.length - 1];
+
+      // DOM Elements
+      const dom = {
+        loading: document.getElementById('share-loading-box'),
+        notFound: document.getElementById('share-not-found-box'),
+        active: document.getElementById('share-active-box'),
+        title: document.getElementById('display-share-title'),
+        subtitle: document.getElementById('display-share-subtitle'),
+        badgeMedia: document.getElementById('badge-media-type'),
+        badgeLock: document.getElementById('badge-lock-status'),
+        imgDisplay: document.getElementById('img-recipient-display'),
+        videoBox: document.getElementById('video-display-box'),
+        videoPlayer: document.getElementById('unlocked-video-player'),
+        docBox: document.getElementById('doc-display-box'),
+        docIcon: document.getElementById('doc-type-icon'),
+        docFilename: document.getElementById('doc-unlocked-filename'),
+        docMeta: document.getElementById('doc-unlocked-meta'),
+        btnDocDownload: document.getElementById('btn-doc-download'),
+        modal: document.getElementById('center-lock-modal'),
+        modalIcon: document.getElementById('modal-icon'),
+        modalHeading: document.getElementById('modal-heading'),
+        modalSubheading: document.getElementById('modal-subheading'),
+        attemptsPill: document.getElementById('attempts-pill'),
+        attemptsText: document.getElementById('attempts-text'),
+        formUnlock: document.getElementById('form-modal-unlock'),
+        pwdInput: document.getElementById('input-unlock-password'),
+        btnTogglePwd: document.getElementById('btn-toggle-modal-pwd'),
+        btnUnlock: document.getElementById('btn-modal-unlock'),
+        unlockSpinner: document.getElementById('unlock-spinner'),
+        unlockIcon: document.getElementById('unlock-icon'),
+        unlockText: document.getElementById('unlock-text'),
+        errorAlert: document.getElementById('modal-error-alert'),
+        errorText: document.getElementById('modal-error-text'),
+        unlockedBar: document.getElementById('unlocked-controls-bar'),
+        btnDownload: document.getElementById('btn-download-file'),
+        btnDownloadLabel: document.getElementById('btn-download-label'),
+        btnRelock: document.getElementById('btn-relock'),
+        metaFilename: document.getElementById('meta-strip-filename'),
+        metaSize: document.getElementById('meta-strip-size'),
+      };
+
+      let currentShareMeta = null;
+      let cachedUnlockedData = null;
+
+      function formatBytes(bytes) {
+        if (!bytes || bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+      }
+
+      function updateAttemptsBadge(remaining, maxAttempts = 5) {
+        dom.attemptsText.textContent = `${remaining} / ${maxAttempts} Attempts Remaining`;
+        dom.attemptsPill.className = 'attempts-badge';
+        if (remaining >= 4) {
+          dom.attemptsPill.classList.add('safe');
+        } else if (remaining >= 2) {
+          dom.attemptsPill.classList.add('warning');
+        } else if (remaining === 1) {
+          dom.attemptsPill.classList.add('critical');
+        } else {
+          dom.attemptsPill.classList.add('locked');
+          dom.attemptsText.textContent = '0 Attempts Left (Permanently Locked)';
+        }
+      }
+
+      function renderLockoutState(message) {
+        dom.attemptsPill.className = 'attempts-badge locked';
+        dom.attemptsText.textContent = '🚫 Access Permanently Blocked';
+        dom.errorText.textContent = message || 'Maximum 5 password attempts exceeded. File permanently locked.';
+        dom.errorAlert.classList.remove('hidden');
+        dom.pwdInput.disabled = true;
+        dom.btnUnlock.disabled = true;
+        dom.btnUnlock.style.display = 'none';
+        dom.pwdInput.style.display = 'none';
+        dom.modalSubheading.textContent = 'This file has self-locked due to exceeding 5 incorrect password attempts. Decryption is permanently disabled.';
+      }
+
+      // Check URL hash for auto-password (combo link sharing feature)
+      function checkAutoPassword() {
+        try {
+          if (window.location.hash) {
+            const hash = window.location.hash.substring(1);
+            const params = new URLSearchParams(hash);
+            if (params.has('pwd')) {
+              dom.pwdInput.value = decodeURIComponent(params.get('pwd'));
+            }
+          }
+        } catch (e) {}
+      }
+
+      // 1. Fetch metadata
+      async function loadShareInfo() {
+        if (!shareId || shareId === 'share') {
+          showNotFound();
+          return;
+        }
+
+        try {
+          const res = await fetch(`/api/share/${shareId}/info`);
+          if (!res.ok) {
+            showNotFound();
+            return;
+          }
+
+          const data = await res.json();
+          currentShareMeta = data;
+
+          // Set metadata labels
+          dom.title.textContent = data.title || 'Encrypted File Transmission';
+          dom.metaFilename.textContent = data.filename || 'file';
+          dom.metaSize.textContent = formatBytes(data.file_size);
+
+          const mediaType = data.media_type || 'image';
+          dom.badgeMedia.textContent = `🔒 ${mediaType.toUpperCase()}`;
+
+          // Configure visual background preview according to media type
+          if (mediaType === 'image') {
+            dom.modalIcon.textContent = '🖼️';
+            // Use actual blurred preview if available, otherwise cipher preview
+            const previewUrl = data.blur_preview || data.cipher_preview || '';
+            dom.imgDisplay.src = previewUrl;
+            dom.imgDisplay.classList.remove('hidden');
+            dom.videoBox.classList.add('hidden');
+            dom.docBox.classList.add('hidden');
+          } else if (mediaType === 'video') {
+            dom.modalIcon.textContent = '🎬';
+            dom.badgeMedia.textContent = '🎬 VIDEO';
+            dom.imgDisplay.classList.add('hidden');
+            dom.videoBox.classList.remove('hidden');
+            dom.docBox.classList.add('hidden');
+          } else {
+            // Document (PDF / DOCX / PPT / TXT)
+            dom.modalIcon.textContent = '📄';
+            dom.badgeMedia.textContent = '📄 DOCUMENT';
+            dom.imgDisplay.classList.add('hidden');
+            dom.videoBox.classList.add('hidden');
+            dom.docBox.classList.remove('hidden');
+            if (data.extension === '.pdf') {
+              dom.docIcon.textContent = '📕';
+              dom.docMeta.textContent = 'Confidential Aadhaar / PDF Document (Protected)';
+            } else {
+              dom.docIcon.textContent = '📄';
+              dom.docMeta.textContent = `Encrypted ${data.extension ? data.extension.toUpperCase() : ''} Document`;
+            }
+          }
+
+          // Attempts remaining setup
+          updateAttemptsBadge(data.remaining_attempts, data.max_attempts);
+
+          if (data.is_locked || data.remaining_attempts <= 0) {
+            renderLockoutState('Security Lockout: Maximum 5 password attempts exceeded. Access permanently blocked.');
+          }
+
+          dom.loading.classList.add('hidden');
+          dom.active.classList.remove('hidden');
+
+          checkAutoPassword();
+          if (!data.is_locked) {
+            dom.pwdInput.focus();
+          }
+        } catch (err) {
+          console.error(err);
+          showNotFound();
+        }
+      }
+
+      function showNotFound() {
+        dom.loading.classList.add('hidden');
+        dom.notFound.classList.remove('hidden');
+      }
+
+      // 2. Toggle password visibility
+      dom.btnTogglePwd.addEventListener('click', () => {
+        const isPwd = dom.pwdInput.type === 'password';
+        dom.pwdInput.type = isPwd ? 'text' : 'password';
+        dom.btnTogglePwd.textContent = isPwd ? '🙈' : '👁️';
+      });
+
+      // 3. Unlock Form Submission
+      dom.formUnlock.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const pwd = dom.pwdInput.value.trim();
+        if (!pwd) return;
+
+        dom.errorAlert.classList.add('hidden');
+        dom.modal.classList.remove('shake-anim');
+
+        // Loading state
+        dom.btnUnlock.disabled = true;
+        dom.unlockSpinner.classList.remove('hidden');
+        dom.unlockIcon.classList.add('hidden');
+        dom.unlockText.textContent = 'Verifying HMAC & Decrypting...';
+
+        try {
+          const formData = new FormData();
+          formData.append('password', pwd);
+
+          const res = await fetch(`/api/share/${shareId}/decrypt`, {
+            method: 'POST',
+            body: formData,
+          });
+
+          const data = await res.json();
+
+          if (!res.ok) {
+            // Decryption failed!
+            dom.modal.classList.add('shake-anim');
+            dom.errorText.textContent = data.detail || 'Authentication failed! Incorrect password.';
+            dom.errorAlert.classList.remove('hidden');
+
+            // Fetch updated attempts info
+            const infoRes = await fetch(`/api/share/${shareId}/info`);
+            if (infoRes.ok) {
+              const info = await infoRes.json();
+              updateAttemptsBadge(info.remaining_attempts, info.max_attempts);
+              if (info.is_locked || info.remaining_attempts <= 0) {
+                renderLockoutState(data.detail);
+                return;
+              }
+            }
+
+            dom.pwdInput.focus();
+            dom.pwdInput.select();
+            return;
+          }
+
+          // SUCCESS! Correct password
+          cachedUnlockedData = data;
+          revealUnlockedMedia(data);
+
+        } catch (err) {
+          console.error(err);
+          dom.errorText.textContent = 'Network error during decryption. Please ensure server is running.';
+          dom.errorAlert.classList.remove('hidden');
+          dom.modal.classList.add('shake-anim');
+        } finally {
+          dom.btnUnlock.disabled = false;
+          dom.unlockSpinner.classList.add('hidden');
+          dom.unlockIcon.classList.remove('hidden');
+          dom.unlockText.textContent = 'Unlock & Decrypt';
+        }
+      });
+
+      // 4. Reveal Unlocked Media
+      function revealUnlockedMedia(data) {
+        // Smoothly fade out center lock modal
+        dom.modal.classList.add('hidden-modal');
+
+        // Update status badge
+        dom.badgeLock.textContent = 'UNLOCKED';
+        dom.badgeLock.style.background = 'rgba(16, 185, 129, 0.2)';
+        dom.badgeLock.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+        dom.badgeLock.style.color = '#34d399';
+
+        const mediaType = data.media_type || (currentShareMeta ? currentShareMeta.media_type : 'image');
+
+        if (mediaType === 'image') {
+          // Replace image src with crystal clear lossless PNG
+          dom.imgDisplay.src = data.image_data;
+          // Smoothly remove blur filter!
+          dom.imgDisplay.classList.remove('is-locked');
+          dom.imgDisplay.classList.add('is-unlocked');
+
+          dom.btnDownload.href = data.image_data;
+          dom.btnDownload.download = data.filename || 'unlocked_image.png';
+          dom.btnDownloadLabel.textContent = 'Download Lossless Image (PNG)';
+        } else if (mediaType === 'video') {
+          dom.imgDisplay.classList.add('hidden');
+          dom.docBox.classList.add('hidden');
+          dom.videoBox.classList.remove('hidden');
+
+          dom.videoPlayer.src = data.data_url;
+          dom.videoPlayer.play().catch(() => {});
+
+          dom.btnDownload.href = data.data_url;
+          dom.btnDownload.download = data.filename || 'unlocked_video.mp4';
+          dom.btnDownloadLabel.textContent = 'Download Restored Video';
+        } else {
+          // Document
+          dom.imgDisplay.classList.add('hidden');
+          dom.videoBox.classList.add('hidden');
+          dom.docBox.classList.remove('hidden');
+
+          dom.docFilename.textContent = data.filename || 'unlocked_document.pdf';
+          dom.docMeta.textContent = `Decrypted Lossless File • ${formatBytes(data.file_size)} • Authenticated`;
+          dom.btnDocDownload.href = data.data_url;
+          dom.btnDocDownload.download = data.filename || 'unlocked_document.pdf';
+
+          dom.btnDownload.href = data.data_url;
+          dom.btnDownload.download = data.filename || 'unlocked_document.pdf';
+          dom.btnDownloadLabel.textContent = 'Download Decrypted Document';
+        }
+
+        // Show Unlocked Controls Bar
+        dom.unlockedBar.classList.remove('hidden');
+      }
+
+      // 5. Re-Lock Button
+      dom.btnRelock.addEventListener('click', () => {
+        dom.unlockedBar.classList.add('hidden');
+        dom.modal.classList.remove('hidden-modal');
+        dom.badgeLock.textContent = 'LOCKED';
+        dom.badgeLock.style.background = 'rgba(245, 158, 11, 0.15)';
+        dom.badgeLock.style.borderColor = 'rgba(245, 158, 11, 0.4)';
+        dom.badgeLock.style.color = '#fbbf24';
+
+        if (currentShareMeta && currentShareMeta.media_type === 'image') {
+          dom.imgDisplay.classList.remove('is-unlocked');
+          dom.imgDisplay.classList.add('is-locked');
+          dom.imgDisplay.src = currentShareMeta.blur_preview || currentShareMeta.cipher_preview || '';
+        } else if (currentShareMeta && currentShareMeta.media_type === 'video') {
+          dom.videoPlayer.pause();
+          dom.videoPlayer.src = '';
+        }
+
+        dom.pwdInput.value = '';
+        dom.pwdInput.focus();
+      });
+
+      // Start loading
+      loadShareInfo();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Advanced Digital Image Encryption Cryptosystem utilizing ChaCha20 Confusion, Diffusion, HKDF-SHA256 Subkey derivation, and HMAC-SHA256 Authenticated Encryption for lossless, bit-exact recovery.">
+  <meta name="keywords" content="image encryption, cryptography, ChaCha20, Fisher-Yates, diffusion, confusion, HMAC-SHA256, Shannon entropy, NPCR, UACI, Dr. AIT">
+  <meta name="author" content="ECE Dept, Dr. AIT | Ramanagouda, Shobhith Sundar, Sunil Jante">
+  <title>AURA-CRYPT // Digital Image Cryptosystem</title>
+  
+  <!-- Modern Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <!-- Ambient background glow elements -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+  <div class="ambient-glow glow-3"></div>
+
+  <!-- Notification Toast Container -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M9 12l2 2 4-4"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <div class="brand-title-row">
+            <h1 class="brand-title">AURA-CRYPT</h1>
+            <span class="version-tag">v1.0 MIL-SPEC</span>
+          </div>
+          <p class="brand-subtitle">Lossless Image Cryptosystem &amp; Cryptanalysis Suite</p>
+        </div>
+      </div>
+
+      <div class="academic-badge">
+        <div class="badge-dept">Dept of ECE • Dr. AIT (2026-27)</div>
+        <div class="badge-guide">Guide: <strong>Prof. Anand HD</strong></div>
+        <div class="badge-crypto">ChaCha20 • HKDF • HMAC-SHA256</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <!-- Navigation Tabs -->
+    <nav class="navigation-bar" aria-label="Application Tabs">
+      <div class="tabs-wrapper">
+        <button id="tab-encrypt" class="tab-btn active" data-target="encrypt-panel">
+          <span class="tab-icon">🔒</span>
+          <span>Encrypt Image</span>
+        </button>
+        <button id="tab-doc-lock" class="tab-btn" data-target="doc-lock-panel">
+          <span class="tab-icon">📄</span>
+          <span>Lock Document / PDF</span>
+        </button>
+        <button id="tab-video-encrypt" class="tab-btn" data-target="video-encrypt-panel">
+          <span class="tab-icon">🎬</span>
+          <span>Encrypt Video</span>
+        </button>
+        <button id="tab-decrypt" class="tab-btn" data-target="decrypt-panel">
+          <span class="tab-icon">🔓</span>
+          <span>Decrypt &amp; Verify</span>
+        </button>
+        <button id="tab-metrics" class="tab-btn" data-target="metrics-panel">
+          <span class="tab-icon">📊</span>
+          <span>Security Metrics</span>
+        </button>
+        <button id="tab-ablation" class="tab-btn" data-target="ablation-panel">
+          <span class="tab-icon">⚖️</span>
+          <span>Ablation Benchmark</span>
+        </button>
+        <button id="tab-architecture" class="tab-btn" data-target="architecture-panel">
+          <span class="tab-icon">🏛️</span>
+          <span>Architecture &amp; Docs</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- TAB 1: ENCRYPT PANEL -->
+    <section id="encrypt-panel" class="tab-content active">
+      <div class="grid-2-col">
+        <!-- Input & Controls Card -->
+        <div class="card glass-card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <span class="step-num">01</span>
+              <h2>Image Input &amp; Key Setup</h2>
+            </div>
+            <span class="badge-status">Lossless Mode</span>
+          </div>
+
+          <!-- Drag and Drop Upload Area -->
+          <div id="encrypt-dropzone" class="dropzone">
+            <input type="file" id="encrypt-file-input" accept="image/png,image/jpeg,image/bmp,image/webp" class="visually-hidden">
+            <div class="dropzone-content">
+              <div class="drop-icon">📁</div>
+              <p class="drop-title">Drop your image here or <span class="highlight-link">browse</span></p>
+              <p class="drop-hint">PNG, JPG, BMP, WEBP (Lossless output as PNG, up to 15 MB)</p>
+            </div>
+            <div id="encrypt-input-preview-box" class="preview-mini-box hidden">
+              <img id="encrypt-input-preview" alt="Plaintext preview" class="preview-mini-img">
+              <div class="preview-mini-details">
+                <span id="encrypt-file-name" class="mini-name">image.png</span>
+                <span id="encrypt-file-meta" class="mini-meta">1080x1080 • RGB • 2.4 MB</span>
+              </div>
+              <button id="btn-remove-encrypt-file" class="btn-icon" title="Clear image">✕</button>
+            </div>
+          </div>
+
+          <!-- Sample Image Quick Presets -->
+          <div class="presets-container">
+            <span class="presets-label">⚡ Quick Test Presets:</span>
+            <div class="preset-buttons">
+              <button type="button" class="preset-btn encrypt-preset-btn" data-sample="benchmark_gradient.png">
+                🎨 Gradient
+              </button>
+              <button type="button" class="preset-btn encrypt-preset-btn" data-sample="medical_scan_demo.png">
+                🩻 Medical Scan
+              </button>
+              <button type="button" class="preset-btn encrypt-preset-btn" data-sample="geometric_pattern.png">
+                🔷 Geometric
+              </button>
+            </div>
+          </div>
+
+          <!-- Direct 256-bit Key or Custom Password Setup -->
+          <div id="section-direct-mode" class="advanced-section" style="margin-top: 1.25rem;">
+            <label for="custom-key-input" class="form-label">
+              Custom Password or 256-bit Key <span class="form-hint">(Optional — Enter custom password like "1234" or 256-bit key, or leave blank to auto-generate)</span>
+            </label>
+            <div class="input-with-button">
+              <input type="text" id="custom-key-input" class="text-input font-mono" placeholder="Enter custom password (e.g. 1234) or 256-bit key...">
+              <button type="button" id="btn-gen-rand-key" class="btn-subtle" title="Generate New Key">🎲 Random</button>
+            </div>
+            <div class="hint-text" style="color: #94a3b8; font-size: 0.8rem; margin-top: 0.4rem;">
+              ChaCha20 spatial permutation &amp; keystream diffusion with HMAC-SHA256 authentication. Passwords derive keys with PBKDF2.
+            </div>
+          </div>
+
+          <!-- Primary Action Button -->
+          <div class="action-footer">
+            <button id="btn-run-encrypt" class="btn-primary glow-button" disabled>
+              <span class="btn-icon">⚡</span>
+              <span id="btn-encrypt-text" class="btn-text">Encrypt Image (ChaCha20 MIL-SPEC)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Encryption Results Card -->
+        <div class="card glass-card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <span class="step-num">02</span>
+              <h2>Encrypted Output &amp; Key Vault</h2>
+            </div>
+            <div id="encrypt-latency-badge" class="badge-metric hidden">0.0 ms</div>
+          </div>
+
+          <div id="encrypt-empty-state" class="empty-state">
+            <div class="empty-icon">🛡️</div>
+            <h3>Ciphertext Noise Pending</h3>
+            <p>Upload or select an image on the left and click <strong>Encrypt Image</strong> to initiate ChaCha20 spatial permutation and keystream XOR diffusion.</p>
+          </div>
+
+          <div id="encrypt-results-view" class="results-container hidden">
+
+            <!-- Mobile Share & QR Code Portal (Top Priority: Instant Scanner & Links) -->
+            <div id="encrypt-share-card" class="share-flow-card" style="margin-top: 0; margin-bottom: 1.25rem;">
+              <div class="card-header" style="padding-bottom: 0.5rem;">
+                <div class="card-title-group">
+                  <span class="step-num">02</span>
+                  <h3 style="font-size: 1.05rem; font-weight: 700;">Mobile Share &amp; Recipient Portal</h3>
+                </div>
+                <span class="badge-status" style="background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4); color: var(--accent-emerald);">5 Attempts Protected</span>
+              </div>
+              <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.85rem;">
+                Instant mobile scanner &amp; share link. Recipient opens in phone or laptop browser to decrypt with your password.
+              </p>
+
+              <!-- Network Switcher Tabs (Worldwide Public vs Wi-Fi LAN) -->
+              <div class="share-net-toggle">
+                <button type="button" id="btn-encrypt-net-tunnel" class="net-btn active">
+                  🌐 Public Link (Worldwide 5G/4G)
+                </button>
+                <button type="button" id="btn-encrypt-net-lan" class="net-btn">
+                  📱 Local Wi-Fi / Hotspot
+                </button>
+              </div>
+
+              <!-- Share URL Field -->
+              <div class="share-input-wrapper">
+                <input type="text" id="encrypt-share-link-url" readonly class="share-url-field" placeholder="Share link ready after encryption...">
+              </div>
+
+              <!-- 4-Button Clean Action Row -->
+              <div class="share-actions-row">
+                <button type="button" id="btn-copy-encrypt-link" class="btn-clean-action" title="Copy shareable link">
+                  📋 Copy Link
+                </button>
+                <button type="button" id="btn-copy-encrypt-combo" class="btn-clean-action btn-combo" title="Copy link with password">
+                  🔐 Link + Pwd
+                </button>
+                <button type="button" id="btn-whatsapp-encrypt-combo" class="btn-clean-action btn-whatsapp" title="Share via WhatsApp">
+                  💬 WhatsApp (+ Pwd)
+                </button>
+                <button type="button" id="btn-open-encrypt-portal" class="btn-clean-action btn-open" title="Open Recipient Portal in new window">
+                  🚀 Open
+                </button>
+              </div>
+
+              <!-- Mobile QR Code Card -->
+              <div class="share-qr-card">
+                <div class="qr-box">
+                  <img id="encrypt-share-qr-img" src="" alt="Mobile QR Code">
+                </div>
+                <div class="qr-info">
+                  <h4>📷 Scan with Mobile Phone</h4>
+                  <p>Point phone camera at this QR code to view and unlock the encrypted image on mobile without typing links.</p>
+                  <div id="encrypt-channel-badge" class="qr-channel-badge">
+                    🌐 Mode: Worldwide Public Cloudflare HTTPS Tunnel
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Key display & copy -->
+            <div id="key-vault-card" class="key-vault-card">
+              <div class="vault-header">
+                <span class="vault-title">🔑 Master Secret Key (256-bit Base64URL)</span>
+                <span class="vault-warning">⚠️ Save this key now! Without it, recovery is mathematically impossible.</span>
+              </div>
+              <div class="key-box">
+                <code id="out-key-text" class="key-display font-mono">-------------------------------------------</code>
+                <div class="key-actions">
+                  <button id="btn-copy-key" class="btn-action" title="Copy Key to Clipboard">
+                    📋 Copy Key
+                  </button>
+                  <button id="btn-download-key" class="btn-action" title="Download Key as Text File">
+                    💾 Save .txt
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Download Buttons -->
+            <div class="download-bar">
+              <button id="btn-download-encrypted-png" class="btn-download">
+                📥 Download Encrypted PNG (Lossless)
+              </button>
+              <button id="btn-send-to-decrypt" class="btn-secondary">
+                🔄 Test in Decrypt Studio
+              </button>
+            </div>
+
+            <!-- Side-by-side previews (Original and Ciphertext Image Down) -->
+            <div class="comparison-grid" style="margin-top: 1.25rem;">
+              <div class="preview-card">
+                <span class="preview-label">Original Plaintext</span>
+                <div class="img-frame">
+                  <img id="out-plain-preview" alt="Original Plaintext" class="rendered-img">
+                </div>
+                <div id="out-plain-dims" class="img-dim-tag">0 x 0</div>
+              </div>
+              <div class="preview-card">
+                <span class="preview-label">ChaCha20 Ciphertext (Noise)</span>
+                <div class="img-frame">
+                  <img id="out-cipher-preview" alt="Encrypted Ciphertext" class="rendered-img">
+                </div>
+                <div id="out-cipher-dims" class="img-dim-tag">0 x 0</div>
+              </div>
+            </div>
+
+            <!-- Quick Metrics Summary Pills -->
+            <div class="summary-pills">
+              <div class="summary-pill">
+                <span class="pill-label">Entropy:</span>
+                <span id="pill-entropy" class="pill-val">7.999 / 8.0</span>
+              </div>
+              <div class="summary-pill">
+                <span class="pill-label">Adjacent Corr:</span>
+                <span id="pill-corr" class="pill-val">0.000</span>
+              </div>
+              <div class="summary-pill">
+                <span class="pill-label">Histogram:</span>
+                <span id="pill-uniform" class="pill-val pass">Uniform ✓</span>
+              </div>
+              <div class="summary-pill">
+                <span class="pill-label">HMAC:</span>
+                <span class="pill-val pass">SHA-256 ✓</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: LOCK DOCUMENT / PDF PANEL -->
+    <section id="doc-lock-panel" class="tab-content">
+      <div class="grid-2-col">
+        <!-- Document Input & Controls Card -->
+        <div class="card glass-card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <span class="step-num">01</span>
+              <h2>Document Input &amp; Passphrase Setup</h2>
+            </div>
+            <span class="badge-status" style="background: rgba(168, 85, 247, 0.15); border-color: rgba(168, 85, 247, 0.4); color: #c084fc;">Aadhaar Standard (10 MB Max)</span>
+          </div>
+
+          <!-- Document Drag and Drop Upload Area -->
+          <div id="doc-dropzone" class="dropzone">
+            <input type="file" id="doc-file-input" accept=".pdf,.docx,.doc,.pptx,.ppt,.txt,application/pdf,application/msword,text/plain" class="visually-hidden">
+            <div class="dropzone-content">
+              <div class="drop-icon">📄</div>
+              <p class="drop-title">Drop your PDF or document here or <span class="highlight-link">browse</span></p>
+              <p class="drop-hint">PDF, DOCX, PPT, TXT (Aadhaar / Corporate Document Lock, up to 10 MB)</p>
+            </div>
+            <div id="doc-input-preview-box" class="preview-mini-box hidden">
+              <div style="font-size: 2.2rem; margin-right: 0.5rem;" id="doc-mini-icon">📕</div>
+              <div class="preview-mini-details">
+                <span id="doc-file-name" class="mini-name">document.pdf</span>
+                <span id="doc-file-meta" class="mini-meta">PDF • 1.2 MB</span>
+              </div>
+              <button id="btn-remove-doc-file" class="btn-icon" title="Clear document">✕</button>
+            </div>
+          </div>
+
+          <!-- Document Quick Test Presets -->
+          <div class="presets-container">
+            <span class="presets-label">⚡ Quick Document Presets:</span>
+            <div class="preset-buttons">
+              <button type="button" class="preset-btn doc-preset-btn" data-doc-sample="aadhaar">
+                📕 Aadhaar Demo
+              </button>
+              <button type="button" class="preset-btn doc-preset-btn" data-doc-sample="nda">
+                📘 Legal NDA
+              </button>
+              <button type="button" class="preset-btn doc-preset-btn" data-doc-sample="secret">
+                📝 Confidential Notes
+              </button>
+            </div>
+          </div>
+
+          <!-- Custom Decryption Password Section -->
+          <div class="advanced-section" style="margin-top: 1rem;">
+            <label for="custom-doc-password-input" class="form-label">
+              Custom Decryption Password <span class="req-star">*</span>
+              <span class="form-hint">(Agreed passphrase for recipient)</span>
+            </label>
+            <div class="input-with-button">
+              <input type="text" id="custom-doc-password-input" class="text-input" placeholder="Set custom document password (e.g. Aadhaar@2026)..." autocomplete="off">
+              <button type="button" id="btn-gen-rand-doc-password" class="btn-subtle" title="Generate Strong Password">🎲 Random</button>
+            </div>
+            <div class="hint-text" style="color: #94a3b8; font-size: 0.8rem; margin-top: 0.4rem;">
+              🛡️ <strong>5 Attempts Security Lockout:</strong> The recipient gets a maximum of 5 attempts to unlock the document. After 5 incorrect tries, the document is permanently locked for security.
+            </div>
+          </div>
+
+          <!-- Primary Action Button -->
+          <div class="action-footer">
+            <button id="btn-run-encrypt-doc" class="btn-primary glow-button" disabled style="background: linear-gradient(135deg, #a855f7, #6366f1);">
+              <span class="btn-icon">🔒</span>
+              <span id="btn-doc-text" class="btn-text">Lock &amp; Generate Document Link</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Document Results Card -->
+        <div class="card glass-card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <span class="step-num">02</span>
+              <h2>Encrypted Document &amp; Vault</h2>
+            </div>
+            <div id="doc-latency-badge" class="badge-metric hidden" style="background: rgba(168, 85, 247, 0.2); color: #c084fc;">⚡ 0.0 ms</div>
+          </div>
+
+          <!-- Empty State -->
+          <div id="doc-empty-state" class="empty-state">
+            <div class="empty-shield">📄</div>
+            <h3 class="empty-title">Document Encryption Pending</h3>
+            <p class="empty-desc">
+              Upload a PDF, DOCX, PPT, or TXT file on the left and enter a password to apply ChaCha20-Poly1305 authenticated encryption with a 5-attempt recipient lockout.
+            </p>
+          </div>
+
+          <!-- Results View -->
+          <div id="doc-results-view" class="results-container hidden">
+            <!-- Share Link Result Card -->
+            <div class="share-link-card" style="background: rgba(168, 85, 247, 0.08); border-color: rgba(168, 85, 247, 0.35);">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; color: #c084fc; font-weight: 700; font-size: 1.05rem;">
+                  <span>🔗</span>
+                  <span>Document Lock Link Created!</span>
+                </div>
+                <div style="display: flex; gap: 0.4rem;">
+                  <span class="badge-status" style="background: rgba(168, 85, 247, 0.2); color: #e9d5ff; border-color: rgba(168, 85, 247, 0.4); font-size: 0.75rem;">🔒 5 Attempts Locked</span>
+                  <span class="badge-status" style="background: rgba(0, 242, 254, 0.15); color: var(--accent-cyan); border-color: rgba(0, 242, 254, 0.4); font-size: 0.75rem;">📱 Mobile Ready</span>
+                </div>
+              </div>
+
+              <!-- Network Switcher Tabs -->
+              <div class="share-net-toggle">
+                <button type="button" id="tab-doc-share-tunnel" class="net-btn active">
+                  🌐 Public Link (Worldwide 5G/4G)
+                </button>
+                <button type="button" id="tab-doc-share-lan" class="net-btn">
+                  📱 Local Wi-Fi / Hotspot
+                </button>
+              </div>
+
+              <!-- URL Input Field -->
+              <div class="share-input-wrapper">
+                <input type="text" id="doc-share-link-url" class="share-url-field" readonly style="color: #c084fc;">
+              </div>
+
+              <!-- Streamlined 4-Button Clean Action Row -->
+              <div class="share-actions-row">
+                <button type="button" id="btn-copy-doc-link" class="btn-clean-action" title="Copy shareable link">
+                  📋 Copy Link
+                </button>
+                <button type="button" id="btn-copy-doc-combo" class="btn-clean-action btn-combo" title="Copy share link with password">
+                  🔐 Link + Password
+                </button>
+                <button type="button" id="btn-whatsapp-doc-combo" class="btn-clean-action btn-whatsapp" title="Share link with password via WhatsApp">
+                  💬 WhatsApp (+ Pwd)
+                </button>
+                <button type="button" id="btn-open-doc-portal" class="btn-clean-action btn-open" title="Open Recipient Portal in new window" style="background: #a855f7; border-color: #a855f7; color: #ffffff;">
+                  🚀 Open
+                </button>
+              </div>
+
+              <!-- Mobile QR Code Frame -->
+              <div class="share-qr-card">
+                <div class="qr-box">
+                  <img id="doc-share-qr-img" src="" alt="Mobile QR Code">
+                </div>
+                <div class="qr-info">
+                  <h4>📷 Scan to Unlock Document</h4>
+                  <p>Recipient scans this QR code on Android/iOS to open the password-protected document portal.</p>
+                  <div id="doc-channel-badge" class="qr-channel-badge" style="color: #c084fc;">
+                    🌐 Mode: Worldwide Public Cloudflare HTTPS Tunnel
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Document Specs Card -->
+            <div style="margin-top: 1rem; padding: 1rem; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-sm);">
+              <div style="font-size: 0.85rem; color: var(--text-secondary); display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem;">
+                <div>Filename: <strong id="out-doc-filename" style="color: #ffffff;">document.pdf</strong></div>
+                <div>Size: <strong id="out-doc-size" style="color: #ffffff;">0 KB</strong></div>
+                <div>Algorithm: <strong style="color: #c084fc;">ChaCha20-Poly1305</strong></div>
+                <div>Security: <strong style="color: #34d399;">5 Attempts Lockout</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: ENCRYPT VIDEO PANEL -->
+    <section id="video-encrypt-panel" class="tab-content">
+      <div class="grid-2-col">
+        <!-- Video Input & Controls Card -->
+        <div class="card glass-card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <span class="step-num">01</span>
+              <h2>Video Input &amp; Key Setup</h2>
+            </div>
+            <span class="badge-status" style="background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.4); color: #f87171;">ChaCha20 Stream (15 MB Max)</span>
+          </div>
+
+          <!-- Video Dropzone Area -->
+          <div id="video-dropzone" class="dropzone">
+            <input type="file" id="video-file-input" accept="video/mp4,video/webm,video/ogg,video/quicktime,.mp4,.webm,.mkv,.mov" class="visually-hidden">
+            <div class="dropzone-content">
+              <div class="drop-icon">🎬</div>
+              <p class="drop-title">Drop your video here or <span class="highlight-link">browse</span></p>
+              <p class="drop-hint">MP4, WEBM, MKV, MOV (ChaCha20 stream encryption, up to 15 MB)</p>
+            </div>
+            <div id="video-input-preview-box" class="preview-mini-box hidden">
+              <div style="font-size: 2.2rem; margin-right: 0.5rem;">🎞️</div>
+              <div class="preview-mini-details">
+                <span id="video-file-name" class="mini-name">video.mp4</span>
+                <span id="video-file-meta" class="mini-meta">MP4 • 4.8 MB</span>
+              </div>
+              <button id="btn-remove-video-file" class="btn-icon" title="Clear video">✕</button>
+            </div>
+          </div>
+
+          <!-- Video Quick Test Presets -->
+          <div class="presets-container">
+            <span class="presets-label">⚡ Quick Video Preset:</span>
+            <div class="preset-buttons">
+              <button type="button" class="preset-btn video-preset-btn" data-video-sample="sample_clip.mp4">
+                🎬 Demo Clip (640x360 MP4)
+              </button>
+            </div>
+          </div>
+
+          <!-- Custom Decryption Password Section -->
+          <div class="advanced-section" style="margin-top: 1rem;">
+            <label for="custom-video-password-input" class="form-label">
+              Custom Decryption Password <span class="req-star">*</span>
+              <span class="form-hint">(Set by you for the recipient)</span>
+            </label>
+            <div class="input-with-button">
+              <input type="text" id="custom-video-password-input" class="text-input" placeholder="Set custom video password (e.g. SecretClip#99)..." autocomplete="off">
+              <button type="button" id="btn-gen-rand-video-password" class="btn-subtle" title="Generate Strong Password">🎲 Random</button>
+            </div>
+            <div class="hint-text" style="color: #94a3b8; font-size: 0.8rem; margin-top: 0.4rem;">
+              🎬 <strong>Encrypted Video Player:</strong> The recipient opens the link and sees a frosted video frame. Entering the correct password removes the lock and streams the video directly in browser.
+            </div>
+          </div>
+
+          <!-- Primary Action Button -->
+          <div class="action-footer">
+            <button id="btn-run-encrypt-video" class="btn-primary glow-button" disabled style="background: linear-gradient(135deg, #ef4444, #f97316);">
+              <span class="btn-icon">⚡</span>
+              <span id="btn-video-text" class="btn-text">Encrypt &amp; Generate Video Link</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Video Results Card -->
+        <div class="card glass-card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <span class="step-num">02</span>
+              <h2>Encrypted Video &amp; Vault</h2>
+            </div>
+            <div id="video-latency-badge" class="badge-metric hidden" style="background: rgba(239, 68, 68, 0.2); color: #f87171;">⚡ 0.0 ms</div>
+          </div>
+
+          <!-- Empty State -->
+          <div id="video-empty-state" class="empty-state">
+            <div class="empty-shield">🎬</div>
+            <h3 class="empty-title">Video Stream Encryption Pending</h3>
+            <p class="empty-desc">
+              Upload an MP4, WEBM, MKV, or MOV video file on the left and set a password to generate a secure, authenticated streaming share link.
+            </p>
+          </div>
+
+          <!-- Results View -->
+          <div id="video-results-view" class="results-container hidden">
+            <!-- Share Link Result Card -->
+            <div class="share-link-card" style="background: rgba(239, 68, 68, 0.08); border-color: rgba(239, 68, 68, 0.35);">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; color: #f87171; font-weight: 700; font-size: 1.05rem;">
+                  <span>🔗</span>
+                  <span>Video Share Link Created!</span>
+                </div>
+                <div style="display: flex; gap: 0.4rem;">
+                  <span class="badge-status" style="background: rgba(239, 68, 68, 0.2); color: #fecdd3; border-color: rgba(239, 68, 68, 0.4); font-size: 0.75rem;">🔒 5 Attempts Locked</span>
+                  <span class="badge-status" style="background: rgba(0, 242, 254, 0.15); color: var(--accent-cyan); border-color: rgba(0, 242, 254, 0.4); font-size: 0.75rem;">📱 Mobile Ready</span>
+                </div>
+              </div>
+
+              <!-- Network Switcher Tabs -->
+              <div class="share-net-toggle">
+                <button type="button" id="tab-video-share-tunnel" class="net-btn active">
+                  🌐 Public Link (Worldwide 5G/4G)
+                </button>
+                <button type="button" id="tab-video-share-lan" class="net-btn">
+                  📱 Local Wi-Fi / Hotspot
+                </button>
+              </div>
+
+              <!-- URL Input Field -->
+              <div class="share-input-wrapper">
+                <input type="text" id="video-share-link-url" class="share-url-field" readonly style="color: #f87171;">
+              </div>
+
+              <!-- Streamlined 4-Button Clean Action Row -->
+              <div class="share-actions-row">
+                <button type="button" id="btn-copy-video-link" class="btn-clean-action" title="Copy shareable link">
+                  📋 Copy Link
+                </button>
+                <button type="button" id="btn-copy-video-combo" class="btn-clean-action btn-combo" title="Copy share link with password">
+                  🔐 Link + Password
+                </button>
+                <button type="button" id="btn-whatsapp-video-combo" class="btn-clean-action btn-whatsapp" title="Share link with password via WhatsApp">
+                  💬 WhatsApp (+ Pwd)
+                </button>
+                <button type="button" id="btn-open-video-portal" class="btn-clean-action btn-open" title="Open Recipient Portal in new window" style="background: #ef4444; border-color: #ef4444; color: #ffffff;">
+                  🚀 Open
+                </button>
+              </div>
+
+              <!-- Mobile QR Code Frame -->
+              <div class="share-qr-card">
+                <div class="qr-box">
+                  <img id="video-share-qr-img" src="" alt="Mobile QR Code">
+                </div>
+                <div class="qr-info">
+                  <h4>📷 Scan to Unlock Video</h4>
+                  <p>Recipient scans this QR code on their smartphone to unlock and stream the encrypted video.</p>
+                  <div id="video-channel-badge" class="qr-channel-badge" style="color: #f87171;">
+                    🌐 Mode: Worldwide Public Cloudflare HTTPS Tunnel
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Video Specs Card -->
+            <div style="margin-top: 1rem; padding: 1rem; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-sm);">
+              <div style="font-size: 0.85rem; color: var(--text-secondary); display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem;">
+                <div>Filename: <strong id="out-video-filename" style="color: #ffffff;">video.mp4</strong></div>
+                <div>Size: <strong id="out-video-size" style="color: #ffffff;">0 KB</strong></div>
+                <div>Cipher: <strong style="color: #f87171;">ChaCha20 Stream</strong></div>
+                <div>Auth: <strong style="color: #34d399;">Poly1305 MAC</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: DECRYPT PANEL -->
+    <section id="decrypt-panel" class="tab-content">
+      <div class="grid-2-col">
+        <!-- Decrypt Input Card -->
+        <div class="card glass-card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <span class="step-num">01</span>
+              <h2>Encrypted Image &amp; Authentication</h2>
+            </div>
+            <span class="badge-status">HMAC Verification</span>
+          </div>
+
+          <!-- Decrypt Dropzone -->
+          <div id="decrypt-dropzone" class="dropzone">
+            <input type="file" id="decrypt-file-input" accept="image/png" class="visually-hidden">
+            <div class="dropzone-content">
+              <div class="drop-icon">🔓</div>
+              <p class="drop-title">Drop your encrypted PNG here or <span class="highlight-link">browse</span></p>
+              <p class="drop-hint">Encrypted PNG with embedded cryptographic metadata chunk</p>
+            </div>
+            <div id="decrypt-input-preview-box" class="preview-mini-box hidden">
+              <img id="decrypt-input-preview" alt="Encrypted ciphertext input" class="preview-mini-img">
+              <div class="preview-mini-details">
+                <span id="decrypt-file-name" class="mini-name">encrypted_image.png</span>
+                <span id="decrypt-file-meta" class="mini-meta">Lossless PNG • Authentic Chunk</span>
+              </div>
+              <button id="btn-remove-decrypt-file" class="btn-icon" title="Clear image">✕</button>
+            </div>
+          </div>
+
+          <!-- Secret Key / Password Input Field -->
+          <div class="form-group">
+            <label for="decrypt-key-input" class="form-label">
+              Secret Decryption Key or Password <span class="req-star">*</span>
+            </label>
+            <div class="input-with-button">
+              <input type="text" id="decrypt-key-input" class="text-input font-mono" placeholder="Paste 256-bit key or enter custom password..." autocomplete="off" spellcheck="false">
+              <button type="button" id="btn-paste-key" class="btn-subtle" title="Paste from clipboard">📋 Paste</button>
+              <button type="button" id="btn-dec-random-key" class="btn-subtle" title="Generate Random Wrong Key (test HMAC rejection!)">🎲 Wrong Key</button>
+            </div>
+            <div id="key-validation-hint" class="hint-text">Enter the 256-bit master key or the custom passphrase set during encryption.</div>
+          </div>
+
+          <!-- Decrypt Action Button -->
+          <div class="action-footer">
+            <button id="btn-run-decrypt" class="btn-primary glow-emerald" disabled>
+              <span class="btn-icon">🔓</span>
+              <span class="btn-text">Authenticate &amp; Decrypt Lossless</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Decrypt Results Card -->
+        <div class="card glass-card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <span class="step-num">02</span>
+              <h2>Restored Plaintext &amp; Integrity Report</h2>
+            </div>
+            <div id="decrypt-latency-badge" class="badge-metric hidden">0.0 ms</div>
+          </div>
+
+          <div id="decrypt-empty-state" class="empty-state">
+            <div class="empty-icon">🔍</div>
+            <h3>Waiting for Decryption</h3>
+            <p>Upload an encrypted PNG, provide the secret key, and execute decryption. The system verifies the HMAC-SHA256 signature before restoring the bit-exact original image.</p>
+          </div>
+
+          <!-- Decrypt Verification Alert Message -->
+          <div id="decrypt-alert-box" class="alert-box hidden" role="alert">
+            <div id="alert-icon" class="alert-icon">✓</div>
+            <div class="alert-content">
+              <h4 id="alert-title" class="alert-title">HMAC Authentication Succeeded</h4>
+              <p id="alert-desc" class="alert-desc">Ciphertext is 100% authentic. Image restored with bit-exact fidelity (MSE = 0.0, PSNR = ∞ dB).</p>
+            </div>
+          </div>
+
+          <!-- Decrypt Comparison View -->
+          <div id="decrypt-results-view" class="results-container hidden">
+            <div class="comparison-grid">
+              <div class="preview-card">
+                <span class="preview-label">Encrypted Input (Noise)</span>
+                <div class="img-frame">
+                  <img id="dec-cipher-preview" alt="Encrypted Input" class="rendered-img">
+                </div>
+              </div>
+              <div class="preview-card highlight-border">
+                <span class="preview-label">Decrypted Plaintext (Bit-Exact)</span>
+                <div class="img-frame">
+                  <img id="dec-plain-preview" alt="Restored Plaintext" class="rendered-img">
+                </div>
+              </div>
+            </div>
+
+            <div class="fidelity-stats-card">
+              <div class="fidelity-stat">
+                <span class="f-label">Reconstruction:</span>
+                <span class="f-val highlight-green">Bit-Exact Lossless</span>
+              </div>
+              <div class="fidelity-stat">
+                <span class="f-label">Mean Squared Error (MSE):</span>
+                <span class="f-val">0.0000</span>
+              </div>
+              <div class="fidelity-stat">
+                <span class="f-label">PSNR:</span>
+                <span class="f-val">∞ dB</span>
+              </div>
+            </div>
+
+            <div class="download-bar">
+              <button id="btn-download-decrypted-png" class="btn-download glow-emerald">
+                📥 Download Restored Image
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: METRICS DASHBOARD -->
+    <section id="metrics-panel" class="tab-content">
+      <div class="metrics-dashboard">
+        <div class="section-intro">
+          <h2>Cryptographic Security Evaluation Dashboard</h2>
+          <p>Academic security benchmarks grounded in Alghamdi &amp; Munir (2024) and Shannon's Confusion and Diffusion principles.</p>
+        </div>
+
+        <!-- 4 Metric Cards Grid -->
+        <div class="metric-cards-grid">
+          <!-- Card 1: Shannon Entropy -->
+          <div class="metric-card glass-card">
+            <div class="m-card-header">
+              <span class="m-icon">📈</span>
+              <h3>Shannon Entropy</h3>
+              <span class="m-target">Target: ~8.000</span>
+            </div>
+            <div class="m-values">
+              <div class="m-val-row">
+                <span class="m-type">Plaintext:</span>
+                <span id="m-entropy-plain" class="m-num text-muted">—</span>
+              </div>
+              <div class="m-val-row">
+                <span class="m-type">Ciphertext:</span>
+                <span id="m-entropy-cipher" class="m-num highlight-cyan">—</span>
+              </div>
+            </div>
+            <div class="progress-bar-bg">
+              <div id="m-entropy-bar" class="progress-bar-fill" style="width: 0%"></div>
+            </div>
+            <p class="m-explanation">Measures average information randomness per byte. 8.000 represents ideal white-noise randomness.</p>
+          </div>
+
+          <!-- Card 2: Adjacent Pixel Correlation -->
+          <div class="metric-card glass-card">
+            <div class="m-card-header">
+              <span class="m-icon">🧭</span>
+              <h3>Adjacent Correlation</h3>
+              <span class="m-target">Target: ~0.000</span>
+            </div>
+            <div class="m-values">
+              <div class="m-val-row">
+                <span class="m-type">Horizontal:</span>
+                <span id="m-corr-h" class="m-num">—</span>
+              </div>
+              <div class="m-val-row">
+                <span class="m-type">Vertical:</span>
+                <span id="m-corr-v" class="m-num">—</span>
+              </div>
+              <div class="m-val-row">
+                <span class="m-type">Diagonal:</span>
+                <span id="m-corr-d" class="m-num">—</span>
+              </div>
+            </div>
+            <div class="badge-status-row">
+              <span class="status-indicator">Plain ≈ 0.99 ➔ Cipher ≈ 0.00</span>
+            </div>
+            <p class="m-explanation">Eliminates spatial redundancy, thwarting statistical and visual correlation attacks.</p>
+          </div>
+
+          <!-- Card 3: Histogram Chi-Square Uniformity -->
+          <div class="metric-card glass-card">
+            <div class="m-card-header">
+              <span class="m-icon">📊</span>
+              <h3>Histogram Uniformity</h3>
+              <span class="m-target">Threshold: &lt; 293.25</span>
+            </div>
+            <div class="m-values">
+              <div class="m-val-row">
+                <span class="m-type">Chi-Square (χ²):</span>
+                <span id="m-chi-val" class="m-num">—</span>
+              </div>
+              <div class="m-val-row">
+                <span class="m-type">Uniformity Hypothesis:</span>
+                <span id="m-chi-pass" class="m-badge">Awaiting Data</span>
+              </div>
+            </div>
+            <p class="m-explanation">Pearson χ² goodness-of-fit test across 256 gray bins at α=0.05 (255 degrees of freedom).</p>
+          </div>
+
+          <!-- Card 4: Differential Attack Metrics -->
+          <div class="metric-card glass-card">
+            <div class="m-card-header">
+              <span class="m-icon">🎯</span>
+              <h3>Differential Resistance</h3>
+              <span class="m-target">1-Pixel Flip Sensitivity</span>
+            </div>
+            <div class="m-values">
+              <div class="m-val-row">
+                <span class="m-type">NPCR:</span>
+                <span id="m-npcr-val" class="m-num highlight-green">—</span>
+                <span class="target-sub">&ge; 99.6094%</span>
+              </div>
+              <div class="m-val-row">
+                <span class="m-type">UACI:</span>
+                <span id="m-uaci-val" class="m-num highlight-cyan">—</span>
+                <span class="target-sub">&approx; 33.4635%</span>
+              </div>
+            </div>
+            <p class="m-explanation">NPCR and UACI prove that flipping a single bit or pixel completely transforms the entire ciphertext.</p>
+          </div>
+        </div>
+
+        <!-- Canvas Histograms -->
+        <div class="histogram-section glass-card">
+          <div class="hist-header">
+            <h3>Visual Histogram Distribution Analysis</h3>
+            <span class="hist-legend">
+              <span class="legend-dot dot-plain"></span> Plaintext (Non-Uniform)
+              <span class="legend-dot dot-cipher"></span> Ciphertext (Uniform White Noise)
+            </span>
+          </div>
+          <div class="canvas-container">
+            <canvas id="histogram-canvas" width="900" height="260" class="crypto-canvas"></canvas>
+          </div>
+          <div class="hist-footer-note">
+            The flat horizontal distribution of the ciphertext demonstrates that all 256 pixel intensity levels are equally probable, defeating frequency analysis.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: ABLATION BENCHMARK -->
+    <section id="ablation-panel" class="tab-content">
+      <div class="ablation-container glass-card">
+        <div class="section-intro">
+          <h2>Ablation Analysis: Why Pure Shuffling Fails</h2>
+          <p>Comparative benchmark proving Claude Shannon's theorem: <strong>Permutation without Diffusion leaves color histograms completely exposed</strong> to statistical attacks.</p>
+        </div>
+
+        <div class="table-responsive">
+          <table class="ablation-table">
+            <thead>
+              <tr>
+                <th>Security Parameter</th>
+                <th>Plain Image</th>
+                <th>Shuffle-Only (Permutation)</th>
+                <th>Proposed Cryptosystem (Permutation + ChaCha20 Diffusion)</th>
+                <th>Academic Significance</th>
+              </tr>
+            </thead>
+            <tbody id="ablation-tbody">
+              <tr>
+                <td><strong>Shannon Entropy</strong> (Ideal: 8.000)</td>
+                <td>~ 6.8 - 7.2</td>
+                <td class="cell-fail">~ 6.8 - 7.2 <span class="tag-danger">Unchanged!</span></td>
+                <td class="cell-pass"><strong>7.999</strong> <span class="tag-success">Optimal</span></td>
+                <td>Pixel shuffle does not change byte values; only diffusion maximizes randomness.</td>
+              </tr>
+              <tr>
+                <td><strong>Adjacent Correlation (H)</strong> (Target: ~0.00)</td>
+                <td>~ 0.95 - 0.99</td>
+                <td class="cell-warn">~ 0.05 - 0.10</td>
+                <td class="cell-pass"><strong>0.001</strong></td>
+                <td>Diffusion eliminates any residual micro-spatial correlation across all channels.</td>
+              </tr>
+              <tr>
+                <td><strong>Histogram Uniformity (χ²)</strong> (&lt; 293.25)</td>
+                <td>&gt; 50,000 (Non-uniform)</td>
+                <td class="cell-fail">&gt; 50,000 <span class="tag-danger">Identical to Plain!</span></td>
+                <td class="cell-pass"><strong>&lt; 250.0</strong> <span class="tag-success">Uniform Pass</span></td>
+                <td>Shuffle-only has the exact same histogram as plain image. Attackers can deduce color and object frequencies trivially.</td>
+              </tr>
+              <tr>
+                <td><strong>Key Space</strong></td>
+                <td>N/A</td>
+                <td>Permutation seeds only</td>
+                <td class="cell-pass"><strong>2<sup>256</sup></strong> (&gt; 2<sup>100</sup> requirement)</td>
+                <td>Immune to brute-force attacks across modern supercomputing clusters.</td>
+              </tr>
+              <tr>
+                <td><strong>Integrity Authentication</strong></td>
+                <td>None</td>
+                <td>None</td>
+                <td class="cell-pass"><strong>HMAC-SHA256</strong></td>
+                <td>Detects 1-bit tampering or incorrect decryption keys instantly before decryption.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: ARCHITECTURE & DOCS -->
+    <section id="architecture-panel" class="tab-content">
+      <div class="docs-container glass-card">
+        <h2>Cryptosystem Architecture &amp; Mathematical Specification</h2>
+        
+        <div class="math-block">
+          <h3>Algorithm Pipeline:</h3>
+          <ol class="spec-steps">
+            <li><strong>Input Conditioning:</strong> Image matrix <code>I ∈ ℝ<sup>H × W × C</sup></code> mapped to <code>N = H × W</code> coupled pixel channels.</li>
+            <li><strong>Key Expansion (HKDF-SHA256):</strong> 256-bit master key <code>K</code> derived into three isolated subkeys: <code>K<sub>perm</sub></code>, <code>K<sub>stream</sub></code>, <code>K<sub>mac</sub></code> — each bound to a unique domain tag.</li>
+            <li><strong>Spatial Diffusion (ChaCha20 Permutation):</strong> Deterministic Fisher-Yates shuffle driven by a 64-bit integer keystream from <code>K<sub>perm</sub></code>. Vectorized <code>O(N log N)</code> stable permutation.</li>
+            <li><strong>Value Confusion (ChaCha20 Keystream XOR):</strong> <code>C<sub>i</sub> = P<sub>π(i)</sub> ⊕ S<sub>i</sub>(Nonce, K<sub>stream</sub>)</code></li>
+            <li><strong>Authentication (Encrypt-then-MAC):</strong> <code>τ = HMAC-SHA256(K<sub>mac</sub>, Header ‖ Ciphertext)</code></li>
+            <li><strong>Format Preservation:</strong> Embedded lossless PNG metadata chunk (<code>tEXt</code> chunk with key <code>ImageCryptoMeta</code>).</li>
+          </ol>
+        </div>
+
+        <div class="team-card">
+          <h3>Department of Electronics &amp; Communication Engineering</h3>
+          <p><strong>Dr. Ambedkar Institute of Technology (Dr. AIT), Bengaluru • Academic Year 2026-27</strong></p>
+          <div class="team-grid">
+            <div class="team-member">
+              <span class="role">Student Researcher</span>
+              <strong>Ramanagouda</strong>
+            </div>
+            <div class="team-member">
+              <span class="role">Student Researcher</span>
+              <strong>Shobhith Sundar</strong>
+            </div>
+            <div class="team-member">
+              <span class="role">Student Researcher</span>
+              <strong>Sunil Jante</strong>
+            </div>
+            <div class="team-member highlight-member">
+              <span class="role">Project Guide</span>
+              <strong>Prof. Anand HD</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <div class="footer-container">
+      <p>AURA-CRYPT Image Encryption Engine • ECE Dept, Dr. AIT • Built with FastAPI, ChaCha20, HKDF, &amp; HMAC-SHA256</p>
+    </div>
+  </footer>
+
+  <script src="/static/main.js"></script>
+</body>
+</html>
