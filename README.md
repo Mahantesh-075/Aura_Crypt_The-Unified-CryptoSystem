@@ -4,7 +4,23 @@ Author: MAHANTESH BASAVARAJ HAVELI
 
 ---
 <img width="1917" height="1018" alt="Screenshot 2026-11-10 150137" src="https://github.com/user-attachments/assets/4faff14b-e746-423a-99ad-f5249beb5b5c" />
-
+<img width="1917" height="1005" alt="Screenshot 2026-11-10 150512" src="https://github.com/user-attachments/assets/21d5b5a8-b778-48da-9280-8e7794a6aab7" />
+<img width="785" height="827" alt="Screenshot 2026-11-10 150530" src="https://github.com/user-attachments/assets/22769406-9276-4498-a58f-de2e51d81ba8" />
+<img width="1917" height="1005" alt="Screenshot 2026-11-10 150638" src="https://github.com/user-attachments/assets/b653ab61-21dc-48bb-a998-24b34563a267" />
+<img width="1917" height="1013" alt="Screenshot 2026-11-10 150156" src="https://github.com/user-attachments/assets/46cdcbbc-56aa-4e83-8b4f-d0371e288bff" />
+<img width="1917" height="1002" alt="Screenshot 2026-11-10 150811" src="https://github.com/user-attachments/assets/68e397d3-6915-4659-bc03-46e5d46ec048" />
+<img width="1917" height="963" alt="Screenshot 2026-11-10 150917" src="https://github.com/user-attachments/assets/b0a3817c-0c54-481f-861b-42f2b41ba2ef" />
+<img width="1917" height="1020" alt="Screenshot 2026-11-10 150940" src="https://github.com/user-attachments/assets/1fa7fcec-addf-44f2-bf1a-b96426a6cd00" />
+<img width="1917" height="1021" alt="Screenshot 2026-11-10 150212" src="https://github.com/user-attachments/assets/7386b03b-10e5-4ccb-951b-64f88bf4231e" />
+<img width="1917" height="990" alt="Screenshot 2026-11-10 151037" src="https://github.com/user-attachments/assets/a6f5a170-3510-443e-b391-6eaf90481d4f" />
+<img width="1917" height="1017" alt="Screenshot 2026-11-10 151215" src="https://github.com/user-attachments/assets/1c7e7d92-c0c6-4e11-b689-3602b849034e" />
+<img width="1917" height="1020" alt="Screenshot 2026-11-10 150257" src="https://github.com/user-attachments/assets/a2f76393-fd93-4ba3-9320-9b67dc10e346" />
+<img width="1917" height="975" alt="Screenshot 2026-11-10 151249" src="https://github.com/user-attachments/assets/36ce53ea-9ddc-49ab-a3f5-9799dcf9e255" />
+<img width="1582" height="505" alt="Screenshot 2026-11-10 151308" src="https://github.com/user-attachments/assets/5f4fd316-a30a-4f40-b351-b505a4807ccc" />
+<img width="1917" height="1005" alt="Screenshot 2026-11-10 150353" src="https://github.com/user-attachments/assets/1af99708-ee9f-4956-8a98-793724dd1e19" />
+<img width="1917" height="1016" alt="Screenshot 2026-11-10 150408" src="https://github.com/user-attachments/assets/4ed076ba-2d97-4760-a91f-f0db93f7f345" />
+<img width="1482" height="781" alt="Screenshot 2026-11-10 150658" src="https://github.com/user-attachments/assets/79fbed21-9213-4718-b4d1-a53078dc2ded" />
+<img width="883" height="612" alt="Screenshot 2026-11-10 151526" src="https://github.com/user-attachments/assets/adc6c4b3-97e9-478b-b9fc-0664498ab869" />
 
 ## 1. Overview & Problem Statement
 
@@ -192,4 +208,6 @@ Run full encryption, decryption, and academic security ablation audits directly 
 | `POST` | `/api/metrics` | Calculates complete academic security evaluation metrics |
 | `GET` | `/` | Serves the main interactive Web UI dashboard |
 | `GET` | `/samples/{file}` | Serves built-in test images for quick demonstrations |
+
+  Made With Python + Cryptographic Techniques & Algorithms.
 
