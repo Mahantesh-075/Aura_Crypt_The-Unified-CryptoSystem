@@ -1,10 +1,6 @@
 # AURA-CRYPT: Digital Image Encryption Using Cryptographic Techniques
 
-**Department of Electronics and Communication Engineering**  
-**Dr. Ambedkar Institute of Technology (Dr. AIT), Bengaluru**  
-**Academic Year:** 2026–27  
-**Project Team:** Ramanagouda, Shobhith Sundar, Sunil Jante  
-**Project Guide:** Prof. Anand HD  
+Author: MAHANTESH BASAVARAJ HAVELI
 
 ---
 
